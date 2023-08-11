@@ -1,0 +1,38 @@
+services:
+
+  # database
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ../data/db:/data/db
+
+  # providers
+  provider-htafc:
+    image: providers/htafc
+    build:
+      context: ./
+      dockerfile: providers/htafc/Dockerfile
+    depends_on:
+      - mongodb
+    environment:
+      SPORTSNEWS_ENVIRONMENT: "production"
+      SPORTSNEWS_LOGLEVEL: "info" # "debug"
+      DATABASE_URL: "mongodb://mongodb:27017"
+
+  # main app
+  sportsnews:
+    image: sportsnews
+    build:
+      context: ./
+      dockerfile: sportsnews/Dockerfile
+    depends_on:
+      - mongodb
+    environment:
+      SPORTSNEWS_ENVIRONMENT: "production"
+      SPORTSNEWS_LOGLEVEL: "info" # "debug"
+      DATABASE_URL: "mongodb://mongodb:27017"
+      LISTEN_ADDRESS: "0.0.0.0:8080"
+    ports:
+      - "8080:8080"
